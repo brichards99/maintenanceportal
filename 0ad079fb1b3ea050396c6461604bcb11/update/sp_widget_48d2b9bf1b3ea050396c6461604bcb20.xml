@@ -433,13 +433,11 @@ function goodAffiliation() {
         <sys_class_name>sp_widget</sys_class_name>
         <sys_created_by>bdr2328</sys_created_by>
         <sys_created_on>2021-03-16 20:13:27</sys_created_on>
-        <sys_customer_update>false</sys_customer_update>
         <sys_id>48d2b9bf1b3ea050396c6461604bcb20</sys_id>
         <sys_mod_count>111</sys_mod_count>
         <sys_name>MaintenanceCalendar</sys_name>
         <sys_package display_value="Maintenance Calendar" source="x_uota5_maint">0ad079fb1b3ea050396c6461604bcb11</sys_package>
         <sys_policy/>
-        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
         <sys_scope display_value="Maintenance Calendar">0ad079fb1b3ea050396c6461604bcb11</sys_scope>
         <sys_update_name>sp_widget_48d2b9bf1b3ea050396c6461604bcb20</sys_update_name>
         <sys_updated_by>bdr2328</sys_updated_by>
@@ -755,6 +753,5 @@ function goodAffiliation() {
 </div>
 
 ]]></template>
-        <u_exception_reason/>
     </sp_widget>
 </record_update>
