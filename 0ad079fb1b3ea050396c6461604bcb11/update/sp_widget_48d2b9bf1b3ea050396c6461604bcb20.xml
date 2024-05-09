@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function(mainCalSvc, spUtil, $rootScope, $scope, spModal) {
+	/* widget controller */
+	var c = this;
+
+	c.today = new Date();
+	c.nav = {
+		range: 'month',
+		grid: true,
+		indexDate: ''
+	}
+	$scope.data.config = mainCalSvc.loadData(); //loads empty objects from the MainCalSvc service to be used by the application
+
+
+	c.setDates = function(indexDate){
+		$scope.data.config.calendar = [];		
+		c.nav.indexDate = indexDate;
+		mainCalSvc.gatherData(indexDate);	
+	}
+	c.formatDate = function(targetDate){
+		return moment(targetDate).format('dddd, MMMM D, YYYY');	
+	}
+	c.formatDateLabel = function(targetDate){
+		return moment(targetDate).format('DD');	
+	}	
+	c.formatMonth = function(targetDate){
+		return moment(targetDate).format('MMMM [of] YYYY');	
+	}
+	c.updateDay = function(difference){
+		var indexDate = new Date(c.nav.indexDate);					
+		indexDate.setDate(indexDate.getDate() + difference);
+		c.setDates(indexDate.toISOString());
+	}
+	
+	$scope.unique = function(collection, keyname){
+		var output = [], keys = [];
+		collection.forEach(function(item) {
+      var key = item[keyname];
+      if (keys.indexOf(key) === -1) {
+        keys.push(key);
+        output.push(item);
+      }
+    });
+    return output;		
+	}
+
+
+	c.openRecord = function(record) {
+		/*
+        spModal.open({
+            title: 'Displaying Outage ',
+            widget: 'widget-form', 
+            widgetInput: {'table': 'cmn_schedule_condition', 'sys_id': record.schedule, 'disableUIActions': true, 'hideRelatedLists' : true}
+        }).then(function(){
+            console.log('widget dismissed');
+        })    
+		*/		
+    }
+	
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.tab-container {
+ 	border: 1px solid black; 
+  	padding: 5px;
+}
+
+#span_menu {
+  clear: both;
+  margin: 0;
+  padding: 0;
+}
+
+#style_menu {
+  float: right;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 3px 0;
+}
+
+.style_menu_item {
+  margin: 0;
+  padding 0 7px 0 7px;
+  display: inline;
+  font-size: .7em;
+  font-family: Helvitica, Arial, sans-serif;
+  border-right: 1px solid #ccc;
+  
+}
+
+.event_type {
+  color: #000000;
+  font-weight: bold;
+}
+
+.tab_menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 65%;
+  font-weight: normal;
+  text-transform: uppercase;
+  z-index: 5500;
+}
+
+.tab_menu li {
+  margin: 0;
+  display: inline;
+  line-height: 1.3em;
+  float: left;
+  background-color: #104050;
+  border: 1px solid #ccc;
+  border-width: 1px 1px 1px 0;
+  white-space: nowrap;
+  padding: 4px 7px 7px 7px;
+  z-index: 6000;
+  background-image: none;
+}
+
+.tab_menu li a {
+ color: white; 
+}
+
+#child_menu {
+  clear: both;
+  background-color: #007ca0;
+  height: 40px;
+  margin: 0;
+  padding: 0 5px;
+}
+
+#jumptodate {
+  color: #ffffff;
+  float: right;
+  margin-right: 5px;
+  margin-top: 4px;
+}
+
+#datenav {
+  margin: 0;
+  padding-top: 5px;
+  font-size: 0.8em;
+}
+
+#datenav span {
+ color: white; 
+}
+
+#datenav a:link, a:visited, a:hover, a:active {
+  color: white;
+}
+
+.dateLabel {
+ font-weight: bold;
+}
+
+.dateCell {
+ width: 150px; 
+}
+table {
+ overflow-x:auto; 
+}
+
+.blackoutTitle {
+ color: #000000;
+ font-weight: bold; 
+}
+
+.maintTitle {
+ color: #BF5700;
+ font-weight: bold;
+}
+
+.UT-logo {
+    float: left;
+    margin: 0;
+    top: 43px;
+    font-size: 3.25rem;
+}
+
+.UT-logo {
+    //position: absolute;
+   // top: 10px;
+    margin: 0;
+    font-size: 2rem;
+    color: #BF5700;
+    font-weight: 700;
+}
+
+.UT-News-link {
+    text-decoration: none;
+    display: block;
+    height: 100%;
+    background: transparent;
+}
+
+.UT-logo .span1 {
+    margin-right: -3px;
+}
+.UT-logo a {
+color: #BF5700;
+}
+
+.UT-logo .span2 {
+    margin-left: 3px;
+    letter-spacing: -1.6px;
+}
+
+.UT-logo .span2 {
+    color: #382e2c;
+    margin-left: 2px;
+    letter-spacing: -1px;
+}
+
+.UT-logo {
+    font-size: 3.25rem;
+    color: #BF5700;
+    font-weight: 700;
+}
+
+span.calendar_event_type_id_9 {
+    color: #000000;
+    font-weight: bold;
+}
+
+span.calendar_event_type_id_10 {
+    color: #BF5700;
+    font-weight: bold;
+}
+
+.dateCell {
+  font-size: 0.9em;
+  line-height: 1.4em;  
+}
+
+$green: #008744;
+$blue: #0057e7;
+$red: #d62d20;
+$yellow: #ffa700;
+$white: #eee;
+
+// scaling... any units
+$width: 100px;
+
+.loader {
+  position: relative;
+  margin: 0 auto;
+  width: $width;
+  &amp;:before {
+    content: '';
+    display: block;
+    padding-top: 100%;
+  }
+}
+
+.circular {
+  animation: rotate 2s linear infinite;
+  height: 100%;
+  transform-origin: center center;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+
+.path {
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+  stroke-linecap: round;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
+@keyframes color {
+  100%,
+  0% {
+    stroke: $red;
+  }
+  40% {
+    stroke: $blue;
+  }
+  66% {
+    stroke: $green;
+  }
+  80%,
+  90% {
+    stroke: $yellow;
+  }
+}
+
+
+body {
+  background-color: $white;
+}
+.spinner {
+  position: absolute;
+  top: 5;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 5%;
+
+}
+#loadingMessage{
+  margin-top: 40px;
+   	min-height: 200px;
+}
+
+HTML CSSResult Skip Results Iframe
+EDIT ON
+/* popover */
+details[data-popover] {
+  display: inline;
+  position: relative;
+}
+details[data-popover] &gt; summary:focus {
+  outline: none;
+}
+details[data-popover] &gt; summary::-webkit-details-marker {
+  display: none;
+}
+details[data-popover] &gt; summary {
+  list-style: none;
+  text-decoration: underline dotted teal;
+}
+details[data-popover] &gt; summary + * {
+  position: absolute;
+  display: block;
+  z-index: 1;
+  width: 30%;
+  border: solid 1px teal;
+  border-radius: 5%;
+  padding: 10px;
+  background: white;
+}
+details[data-popover] &gt; * + * {
+  /* hide detail elements that would ruin the popover */
+  display: none;
+}
+details[data-popover="up"] &gt; summary + * {
+  bottom: calc(0.5rem + 100%);
+  right: 50%;
+  transform: translateX(50%);
+}
+details[data-popover="down"] &gt; summary + * {
+  top: calc(0.5rem + 100%);
+  right: 50%;
+  transform: translateX(50%);
+}
+details[data-popover="left"] &gt; summary + * {
+  right: calc(1rem + 100%);
+  bottom: 50%;
+  transform: translateY(50%);
+}
+details[data-popover="right"] &gt; summary + * {
+  left: calc(1rem + 100%);
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+/* wrapper setup */
+.wrapper {
+  width: 100%;
+  padding: 250px;
+}
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>main-cal</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) { 
+
+ }]]></link>
+        <name>MaintenanceCalendar</name>
+        <option_schema/>
+        <public>true</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+	if(gs.isLoggedIn()){
+				data.loggedIn = true;
+	}
+	else
+				data.loggedIn = false;
+
+data.authorized = goodAffiliation();
+	
+	
+function goodAffiliation() {
+	var id = gs.getUserID();
+	var grUser = new GlideRecord('sys_user');
+	grUser.get(id);
+	var affiliations = grUser.getDisplayValue('u_affiliation');
+	var isFaculty = affiliations.indexOf('faculty');
+	var isStaff = affiliations.indexOf('employee');	
+	return(isFaculty > -1 || isStaff > -1);
+}		
+	
+	
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>bdr2328</sys_created_by>
+        <sys_created_on>2021-03-16 20:13:27</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>48d2b9bf1b3ea050396c6461604bcb20</sys_id>
+        <sys_mod_count>111</sys_mod_count>
+        <sys_name>MaintenanceCalendar</sys_name>
+        <sys_package display_value="Maintenance Calendar" source="x_uota5_maint">0ad079fb1b3ea050396c6461604bcb11</sys_package>
+        <sys_policy/>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Maintenance Calendar">0ad079fb1b3ea050396c6461604bcb11</sys_scope>
+        <sys_update_name>sp_widget_48d2b9bf1b3ea050396c6461604bcb20</sys_update_name>
+        <sys_updated_by>bdr2328</sys_updated_by>
+        <sys_updated_on>2022-06-07 19:51:05</sys_updated_on>
+        <template><![CDATA[<div class="container">
+  <div class="row">
+    <div class="column small-12">
+       <div class="show-for-medium-up UT-logo">
+              <span class="span1">I</span>T<span class="span2">Maintenance Calendar</span>
+      			</div>
+            <!--div class="hide-for-medium-up UT-logo">
+              <a href="https://web-test.its.utexas.edu/" class="UT-News-link active"><span class="span1">I</span>T<span class="span2">Calendar</span></a>
+      			</div-->
+    	</div>
+  </div>
+  <div class="row">
+    <div class="column small-12">
+    </div>
+  </div>  
+</div>
+
+	<div>
+    <h2 ng-if="c.data.loggedIn && !data.authorized">
+      You are not authorized to view the maintenance calendar. Access is restricted to faculty and staff of the university.
+    </h2>
+</div>
+<div>
+    <h2 ng-if="!c.data.loggedIn">
+      Please log in to view the maintenance calendar.
+    </h2>  
+</div>
+ <div class="tabs" ng-if="c.data.loggedIn && data.authorized">
+  <div id="span_menu">  
+    <ul id="style_menu">
+      <li class="style_menu_item">
+        <span class="event_type_key">Legend</span>
+        <span class="calendar_event_type_id_9">&#x25A3;</span>&nbsp<span class="event_type blackoutTitle">Blackout</span>
+        <span class="calendar_event_type_id_10">&#x25C8;</span>&nbsp<span class="event_type maintTitle">Maintenance Window</span>   
+      </li>
+
+    <li class="style_menu_item" ng-if="c.nav.grid == true"><a href="javascript:void(0)" ng-click="c.nav.grid = !c.nav.grid">View as List</a></li>
+    <li class="style_menu_item" ng-if="c.nav.grid == false"><a href="javascript:void(0)" ng-click="c.nav.grid = !c.nav.grid">View as Calendar</a></li>      
+    <!--li class="style_menu_item">iCal feed</li-->   
+    </ul>
+  <ul class="tab_menu">
+    <li><span><a href="javascript:void(0)" ng-click="c.nav.range='day'">Day</a></span></li>
+    <li><span><a href="javascript:void(0)" ng-click="c.nav.range='week'">Week</a></span></li>
+    <li><span><a href="javascript:void(0)" ng-click="c.nav.range='2week'">2 Weeks</a></span></li>
+    <li><span><a href="javascript:void(0)" ng-click="c.nav.range='month'">Month</a></span></li>    
+    </ul>
+  </div>
+  <div id="child_menu">
+    <div id="jumptodate">
+      <span>
+        <sp-date-picker value= "{{c.today}}" field="c.today" ng-model="c.today" ng-model-options="{getterSetter: true}" ng-change="c.setDates(c.today)"></sp-date-picker>
+       </span>
+    </div>
+    <div id="datenav">
+      <span ng-if="c.nav.range == 'day'"><a href="javascript:void(0)" ng-click="c.updateDay(-1)">&#60;&#60;&#60; </a>{{c.formatDate(data.config.dateRanges.target)}}<a href="javascript:void(0)" ng-click="c.updateDay(1)"> &#62;&#62;&#62;</a></span>
+      <span ng-if="c.nav.range == 'week'"><a href="javascript:void(0)" ng-click="c.updateDay(-7)">&#60;&#60;&#60; </a>{{c.formatDate(data.config.dateRanges.weeklyStart)}} -- {{c.formatDate(data.config.dateRanges.oneWeekEnd)}}<a href="javascript:void(0)" ng-click="c.updateDay(7)"> &#62;&#62;&#62;</a></span>
+      <span ng-if="c.nav.range == '2week'"><a href="javascript:void(0)" ng-click="c.updateDay(-14)">&#60;&#60;&#60; </a>{{c.formatDate(data.config.dateRanges.weeklyStart)}} -- {{c.formatDate(data.config.dateRanges.twoWeekEnd)}}<a href="javascript:void(0)" ng-click="c.updateDay(14)"> &#62;&#62;&#62;</a></span>
+      <span ng-if="c.nav.range == 'month'"><a href="javascript:void(0)" ng-click="c.updateDay(-30)">&#60;&#60;&#60; </a>{{c.formatMonth(data.config.dateRanges.target)}}<a href="javascript:void(0)" ng-click="c.updateDay(30)"> &#62;&#62;&#62;</a></span>     
+    </div>
+  </div>
+  <div ng-if="data.config.calendar.length > 0">
+  	<div class="tab-container">
+    <div id="day" class="tab-content" ng-if="c.nav.range == 'day' && c.nav.grid == false">
+          <table class="table table-striped table-bordered" id="calendar">
+            <thead>
+              <th colspan='2'>{{c.formatDate(data.config.dateRanges.target)}}</th>                
+            </thead>
+            <tbody>
+              <tr ng-repeat="event in data.config.day  | unique : 'schedule' track by $index ">
+                <td><span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>
+                  &nbsp{{event.beginTime}} - {{event.endTime}}
+                </td>     
+                <td>
+<details data-popover=“up”>
+<summary>
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event.sys_id)"-->
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details>                  
+                </td>          
+              </tr>
+            </tbody>
+            </table>      
+    </div> 
+    <div id="week" class="tab-content" ng-if="c.nav.range == 'week' && c.nav.grid == false">
+          <table class="table table-striped table-bordered" id="calendar" ng-repeat="week in data.config.weeks | limitTo : 1 track by $index" >
+            <tbody ng-repeat="day in week track by $index">
+              <tr ng-if="day.events.length > 0">
+                <td colspn='2'><p class="dateLabel">{{c.formatDate(day.day)}}</p>
+                </td>
+              </tr>             
+              <tr ng-repeat="event in day.events | orderBy : 'checkedAgainst' | unique : 'schedule' track by $index"  ng-if="day.events.length > 0">
+                <td>{{event.beginTime}} - {{event.endTime}}</td>
+                <td>
+<details data-popover=“up”>
+<summary>
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event.sys_id)"-->
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details>                  
+                </td>          
+              </tr>
+            </tbody>
+            </table>    
+      
+      
+    </div> 
+    <div id="2week" class="tab-content" ng-if="c.nav.range == '2week' && c.nav.grid == false">
+          <table class="table table-striped table-bordered" id="calendar" ng-repeat="week in data.config.weeks | limitTo:2 track by $index" ng-init="parentIndex = $index">
+            <tbody ng-repeat="day in week track by $index">
+              <tr ng-if="day.events.length > 0">
+                <td colspn='2'><p class="dateLabel">{{c.formatDate(day.day)}}</p>
+                </td>
+              </tr>              
+              <tr ng-repeat="event in day.events | orderBy : 'checkedAgainst'  | unique : 'schedule' track by $index" ng-if="day.events.length > 0">
+                <td>{{event.beginTime}} - {{event.endTime}}</td>
+                <td>
+<details data-popover=“up”>
+<summary>
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event.sys_id)"-->
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details>                   
+                </td>        
+              </tr>
+            </tbody>
+            </table>
+      
+    </div> 
+    <div id="month" class="tab-content" ng-if="c.nav.range == 'month' && c.nav.grid == false">
+          <table class="table table-striped table-bordered" id="calendar" ng-repeat="week in data.config.calendar track by $index | limitTo:1" >
+            <tbody ng-repeat="day in week track by $index">
+              <tr ng-if="day.events.length > 0">
+                <td colspn='2'><p class="dateLabel">{{c.formatDate(day.day)}}</p>
+                </td>
+              </tr>              
+              <tr ng-repeat="event in day.events | orderBy : 'checkedAgainst' | unique : 'schedule' track by $index" ng-if="day.events.length > 0">
+                <td>{{event.beginTime}} - {{event.endTime}}</td>
+                <td>
+<details data-popover=“up”>
+<summary>
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event.sys_id)"-->
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details>                     
+                </td>         
+              </tr>
+            </tbody>
+            </table>
+
+    </div> 
+      
+  </div>  
+
+    <div class="tab-container">
+    <div id="day" class="tab-content" ng-if="c.nav.range == 'day' && c.nav.grid == true">
+          <table class="table table-striped table-bordered" id="calendar">
+            <tbody>
+              <tr ng-repeat="event in data.config.day | orderBy : 'checkedAgainst' | unique : 'schedule' track by $index">
+                <td>{{event.beginTime}} - {{event.endTime}}</td>
+                <td>
+                  <!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event)">
+                  <span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp                  
+                  <span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+                  </a-->
+<details data-popover=“up”>
+<summary>
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event.sys_id)"-->
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details>                          
+                </td>          
+              </tr>
+            </tbody>
+            </table>      
+    </div> 
+    <div id="week" class="tab-content" ng-if="c.nav.range == 'week' && c.nav.grid == true">
+          <table class="table table-striped table-bordered" id="calendar" ng-repeat="week in data.config.weeks | limitTo : 1 track by $index" >
+            <tbody >
+              <thead>
+                <tr>
+                  <th class="dateLabel">Sunday</th>
+                  <th class="dateLabel">Monday</th>
+                  <th class="dateLabel">Tuesday</th>
+                  <th class="dateLabel">Wednesday</th>
+                  <th class="dateLabel">Thursday</th>
+                  <th class="dateLabel">Friday</th>
+                  <th class="dateLabel">Saturday</th>                  
+                </tr>
+              </thead>              
+              <tr>
+                <td class="dateCell" ng-repeat="day in week track by $index">
+                  <div><p class="dateLabel">{{c.formatDateLabel(day.day)}}</p></div>
+                  <div ng-repeat="event in day.events | orderBy : 'checkedAgainst' | unique : 'schedule' track by $index">
+<details data-popover=“up”>
+<summary>
+{{event.beginTime}}
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event)"-->
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details> 
+                  </div>
+                  </td>          
+              </tr>
+            </tbody>
+            </table>    
+      
+      
+    </div> 
+    <div id="2week" class="tab-content" ng-if="c.nav.range == '2week' && c.nav.grid == true">
+          <table class="table table-striped table-bordered" id="calendar" >
+            <tbody>
+              <thead>
+                <tr>
+                  <th class="dateLabel">Sunday</th>
+                  <th class="dateLabel">Monday</th>
+                  <th class="dateLabel">Tuesday</th>
+                  <th class="dateLabel">Wednesday</th>
+                  <th class="dateLabel">Thursday</th>
+                  <th class="dateLabel">Friday</th>
+                  <th class="dateLabel">Saturday</th>                  
+                </tr>
+              </thead>              
+              <tr ng-repeat="week in data.config.weeks | limitTo:2 track by $index" ng-init="parentIndex = $index">
+                <td class="dateCell" ng-repeat="day in week track by $index">
+                  <div><p class="dateLabel">{{c.formatDateLabel(day.day)}}</p></div>
+                  <div ng-repeat="event in day.events | orderBy : 'checkedAgainst' | unique : 'schedule' track by $index">
+<details data-popover=“up”>
+<summary>
+{{event.beginTime}}
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event)"-->
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details> 
+                  </div>
+                  </td>          
+              </tr>
+            </tbody>
+            </table>
+      
+    </div> 
+    <div id="month" class="tab-content" ng-if="c.nav.range == 'month' && c.nav.grid == true">
+          <table class="table table-striped table-bordered" id="calendar">
+            <tbody>
+              <thead>
+                <tr>
+                  <th class="dateLabel">Sunday</th>
+                  <th class="dateLabel">Monday</th>
+                  <th class="dateLabel">Tuesday</th>
+                  <th class="dateLabel">Wednesday</th>
+                  <th class="dateLabel">Thursday</th>
+                  <th class="dateLabel">Friday</th>
+                  <th class="dateLabel">Saturday</th>                  
+                </tr>
+              </thead>
+              <tr ng-repeat="week in data.config.calendar track by $index" ng-init="parentIndex = $index">
+                <td class="dateCell" ng-repeat="day in week track by $index">
+                  <div><p class="dateLabel">{{c.formatDateLabel(day.day)}}</p></div>
+                  <div ng-repeat="event in day.events | orderBy : 'checkedAgainst' | unique : 'schedule' track by $index">
+<details data-popover=“up”>
+<summary>
+{{event.beginTime}}
+<span ng-if="event.type=='cmn_schedule_blackout'" class="calendar_event_type_id_9">&#x25A3;</span><span ng-if="event.type=='cmn_schedule_maintenance'" class="calendar_event_type_id_10">&#x25C8;</span>&nbsp
+<!--a href="javascript:void(0)" title="{{event.description}}" ng-click="c.openRecord(event)"-->
+<span ng-class="{'blackoutTitle': event.type=='cmn_schedule_blackout', 'maintTitle': event.type=='cmn_schedule_maintenance'}">{{event.short_description}}</span>
+<!--/a-->
+</summary>
+<div><p>{{event.description}}</p></div>
+</details> 
+                  </div>
+                  </td>          
+              </tr>
+            </tbody>
+            </table>
+
+    </div> 
+  </div>  
+</div> 
+   
+<div class="spinner"  ng-if="data.config.calendar.length == 0">
+  <div class="loader">
+    <svg class="circular" viewBox="25 25 50 50">
+      <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
+    </svg>
+  </div>
+    
+</div>   
+ <p id='loadingMessage' ng-if="data.config.calendar.length == 0"><em>Loading calendar entries</em></p>
+</div>
+
+]]></template>
+        <u_exception_reason/>
+    </sp_widget>
+</record_update>

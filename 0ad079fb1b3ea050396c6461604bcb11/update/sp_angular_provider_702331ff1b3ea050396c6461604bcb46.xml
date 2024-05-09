@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_angular_provider">
+    <sp_angular_provider action="INSERT_OR_UPDATE">
+        <name>mainCalSvc</name>
+        <script><![CDATA[function($rootScope, $http, spUtil) {
+var data = {
+	calendar : [],
+	dateRanges : '',
+	day: [],
+	weeks: []
+};
+
+this.loadData = function() {
+	return data;
+};
+
+	this.gatherData = function(config) {
+		this.getDateStrings(config);
+		this.getCalendar(config);
+		this.getWeeks(config);		
+		this.getDay(config);
+		return;
+	};
+
+	this.getCalendar = function(config) {
+		$http({
+			method: 'POST',
+			url: '/api/x_uota5_maint/maintcal/getEvents',
+			data: config
+		}).success(function(dat, status) {		
+		data.calendar = dat.result;
+		}).error(function(dat, status) {
+		});
+	};
+
+	this.getDay = function(config) {
+		$http({
+			method: 'POST',
+			url: '/api/x_uota5_maint/maintcal/getEventsByDay',
+			data: config
+		}).success(function(dat, status) {		
+		data.day = dat.result;
+		}).error(function(dat, status) {
+		});
+	};
+	
+	this.getWeeks = function(config) {
+		$http({
+			method: 'POST',
+			url: '/api/x_uota5_maint/maintcal/getEventsByWeeks',
+			data: config
+		}).success(function(dat, status) {		
+		data.weeks = dat.result;
+		}).error(function(dat, status) {
+		});
+	};
+	
+	
+	this.getDateStrings = function(config) {
+		$http({
+			method: 'POST',
+			url: '/api/x_uota5_maint/maintcal/getDateStrings',
+			data: config
+        }).success(function(d, s) {
+			data.dateRanges = d.result;
+        }).error(function(d, s) {
+        });
+
+	};	
+	}]]></script>
+        <sys_class_name>sp_angular_provider</sys_class_name>
+        <sys_created_by>bdr2328</sys_created_by>
+        <sys_created_on>2021-03-16 20:14:27</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>702331ff1b3ea050396c6461604bcb46</sys_id>
+        <sys_mod_count>9</sys_mod_count>
+        <sys_name>mainCalSvc</sys_name>
+        <sys_package display_value="Maintenance Calendar" source="x_uota5_maint">0ad079fb1b3ea050396c6461604bcb11</sys_package>
+        <sys_policy/>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Maintenance Calendar">0ad079fb1b3ea050396c6461604bcb11</sys_scope>
+        <sys_update_name>sp_angular_provider_702331ff1b3ea050396c6461604bcb46</sys_update_name>
+        <sys_updated_by>bdr2328</sys_updated_by>
+        <sys_updated_on>2021-07-23 12:39:04</sys_updated_on>
+        <type>service</type>
+        <u_exception_reason/>
+    </sp_angular_provider>
+</record_update>

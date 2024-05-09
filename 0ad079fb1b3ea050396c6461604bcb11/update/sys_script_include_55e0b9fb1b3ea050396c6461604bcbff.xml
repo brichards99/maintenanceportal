@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_uota5_maint.MaintCalUtils</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>MaintCalUtils</name>
+        <script><![CDATA[var MaintCalUtils = Class.create();
+MaintCalUtils.prototype = {
+    initialize: function() {},
+
+	/*
+	getDateStrings function
+	
+	*/
+    getDateStrings: function(targetDate) {
+        try {
+            var gdt = new GlideDate();
+            gdt.setValue(targetDate);
+            var dateString = gdt.getYearLocalTime() + '-' +
+                gdt.getMonthLocalTime() + '-' +
+                gdt.getDayOfMonthLocalTime();
+            var returnObj = {
+                target: targetDate, //current day
+                targetSimple: dateString, //current day all pretty
+                weeklyStart: '',
+                oneWeekBeg: '',
+                twoWeekBeg: '',
+                oneWeekEnd: '',
+                twoWeekEnd: '',
+                month: '',
+                year: ''
+            };
+            var target = new GlideDateTime();
+            target.setDisplayValue(targetDate);
+
+            returnObj.target = target.getDisplayValue();
+            returnObj.year = target.getYearLocalTime();
+            returnObj.month = target.getMonthLocalTime();
+            var dayOfWeek = target.getDayOfWeekLocalTime();
+            var offset = 0;
+            if (dayOfWeek != 7)
+                offset = 0 - parseInt(dayOfWeek);
+            target.addDaysLocalTime(offset);
+            returnObj.weeklyStart = target.getDisplayValue();
+            target.addDaysLocalTime(6);
+            returnObj.oneWeekEnd = target.getDisplayValue();
+            target.addDaysLocalTime(7);
+            returnObj.twoWeekEnd = target.getDisplayValue();
+            return returnObj;
+        } catch (err) {
+            gs.error('Error in x_8481_maintenance.MaintCalUtils.getDateStrings(): ' + err);
+        }
+
+    },
+
+    getCalendars: function(startingDay) {
+        var scheduleEntryTable = 'cmn_schedule_span';
+        var scheduledFilter = 'schedule.ref_cmn_schedule_condition.source=change_request';
+
+    },
+    getOutagesByWeeks: function(startingDay) {
+        try {
+            var today = new GlideDateTime();
+            today.setDisplayValue(startingDay);
+            var dayOfWeek = today.getDayOfWeekLocalTime();
+            var indexDay = new GlideDateTime();
+            indexDay.setDisplayValue(startingDay);
+            var offset = -dayOfWeek;
+            if (dayOfWeek != 7) {
+                indexDay.addDaysLocalTime(offset);
+            }
+            var outputArr = [];
+            for (var i = 0; i < 2; i++) {
+                /*var dayRecords = this.getOutagesByDay(indexDay +'');
+                var outputDay = {
+                    day: indexDay.getDisplayValue(),
+                    events: dayRecords
+                };
+				*/
+                outputArr.push(this.getOutagesByWeek(indexDay));
+                indexDay.addDaysLocalTime(7);
+            }
+            return outputArr;
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.getOutagesByWeeks()' + err);
+        }
+    },
+    getOutagesByMonth: function(targetDate) {
+        try {
+            var parms = this._getStartingParameters(targetDate);
+            var numWeeks = parms.numWeeks;
+            var startingDay = parms.startDay;
+            var outputArr = [];
+            var gdt = new GlideDateTime();
+            gdt.setDisplayValue(startingDay);
+            for (var i = 0; i < numWeeks; i++) {
+                outputArr.push(this.getOutagesByWeek(gdt));
+                gdt.addDaysLocalTime(7);
+            }
+            return outputArr;
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.getOutagesByMonth()' + err);
+        }
+    },
+    getOutagesByWeek: function(startingDay) {
+        try {
+            var outputArr = [];
+            for (var i = 0; i < 7; i++) {
+                var gdt = new GlideDateTime();
+                gdt.setDisplayValue(startingDay);
+                gdt.addDaysLocalTime(i);
+                //var dayRecords = this.getOutagesByDay(gdt);
+                var dayRecords = this.getSchedulesByDay(gdt);
+                var outputDay = {
+                    day: gdt.getDisplayValue(),
+                    events: dayRecords
+                };
+                outputArr.push(outputDay);
+            }
+            return outputArr;
+
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.getOutagesByWeek()' + err);
+        }
+    },
+    getOutagesByDay: function(day) {
+        try {
+            var gdt = new GlideDateTime(day);
+            var year = gdt.getMonthLocalTime();
+            var dateString = gdt.getYearLocalTime() + '-' + gdt.getMonthLocalTime() + '-' + gdt.getDayOfMonthLocalTime();
+            var returnArr = [];
+            var grOut = new GlideRecord('cmdb_ci_outage');
+            grOut.addEncodedQuery("beginON" + dateString + "@javascript:gs.dateGenerate('" + dateString + "','start')@javascript:gs.dateGenerate('" + dateString + "','end')");
+            grOut.query();
+            while (grOut.next()) {
+                var gdtBegin = new GlideDateTime();
+                gdtBegin.setValue(grOut.getValue('begin'));
+                var gtBegin = gdtBegin.getLocalTime();
+                var beginDayFormatted = gdtBegin.getYearLocalTime() + '-' +
+                    gdtBegin.getMonthLocalTime() + '-' +
+                    gdtBegin.getDayOfMonthLocalTime();
+                var gdtEnd = new GlideDateTime(grOut.getValue('end'));
+                gdtEnd.setValue(grOut.getValue('end'));
+                var gtEnd = gdtEnd.getLocalTime();
+                var recordObj = {
+                    sys_id: grOut.getUniqueValue(),
+                    date: beginDayFormatted,
+                    begin: grOut.getDisplayValue('begin'),
+                    end: grOut.getDisplayValue('end'),
+                    beginTime: gtBegin.getByFormat('hh:mm a'),
+                    endTime: gtEnd.getByFormat('hh:mm a'),
+                    type: grOut.getDisplayValue('type'),
+                    short_description: grOut.getDisplayValue('short_description')
+                };
+                returnArr.push(recordObj);
+            }
+            return returnArr;
+
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.getOutagesByDay()' + err);
+        }
+
+    },
+    getDayRange: function(targetDate) {
+        try {
+            var parms = this._getStartingParameters(targetDate);
+            var startingDay = parms.startDay;
+            var gdt = new GlideDateTime();
+            gdt.setDisplayValue(startingDay);
+
+			var dayRecords = this.getSchedulesByDay(targetDate);
+		
+			return dayRecords;
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.getOutagesByMonth()' + err);
+        }
+    },
+    _getStartingParameters: function(startingDay) {
+        var returnObj = {
+            numWeeks: 0,
+            startDay: ''
+        };
+        var today = new GlideDateTime();
+        today.setDisplayValue(startingDay);
+        var year = today.getYearLocalTime();
+        var month = today.getMonthLocalTime();
+        var firstDayString = year + '-' + month + '-' + '01';
+        var gdt = new GlideDateTime();
+        gdt.setDisplayValue(firstDayString, 'yyyy-M-dd');
+        var dayOfWeek = gdt.getDayOfWeekLocalTime();
+        var offset = 0;
+        if (dayOfWeek != 7)
+            offset = 0 - parseInt(dayOfWeek);
+        gdt.addDaysLocalTime(offset);
+        returnObj.startDay = gdt.getDisplayValue();
+        var numWeeks = 1;
+        for (var i = 1; i < 7; i++) {
+            gdt.addDaysLocalTime(7);
+            if (gdt.getMonthLocalTime() == month) {
+                numWeeks++;
+            } else
+                break;
+        }
+        returnObj.numWeeks = numWeeks;
+        return returnObj;
+    },
+
+    createOutageDemo: function(shortDescription, Description, year, month) {
+        try {
+            var datesArray = this._getRandomGDT(year, month);
+            var grOut = new GlideRecord('cmdb_ci_outage');
+            grOut.initialize();
+            grOut.setValue('description', Description);
+            grOut.setValue('short_description', shortDescription);
+            grOut.setValue('cmdb_ci', this._getRandomCI());
+            grOut.setValue('begin', datesArray[0]);
+            grOut.setValue('end', datesArray[1]);
+            grOut.insert();
+            return grOut.getUniqueValue();
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.createOutageDemo() ' + err);
+        }
+
+
+    },
+
+    _getRandomCI: function() {
+        try {
+            var grCI = new GlideRecord('cmdb_ci');
+            grCI.query();
+            var totalCIcount = grCI.getRowCount();
+            var randomCI = Math.floor((Math.random() * totalCIcount));
+            var i = 0;
+            var returnID = '';
+            while (grCI.next()) {
+                if (i == randomCI) {
+                    returnID = grCI.sys_id;
+                    break;
+                }
+                i++;
+            }
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils._getRandomCI() ' + err);
+        }
+        return returnID;
+    },
+
+    _getRandomGDT: function(year, month) {
+        var returnArr = [];
+        var randomDay = Math.floor((Math.random() * 28));
+        var randomHour = Math.floor((Math.random() * 23));
+        var chosenValue = year + '-' + month + '-' + randomDay + ' ' + randomHour + ':00:00';
+        var chosenValue2 = year + '-' + month + '-' + randomDay + ' ' + (parseInt(randomHour) + 1) + ':00:00';
+        var gdt = new GlideDateTime();
+        gdt.setDisplayValue(chosenValue);
+        returnArr.push(gdt);
+        var gdt2 = new GlideDateTime();
+        gdt2.setDisplayValue(chosenValue2);
+        returnArr.push(gdt2);
+        return returnArr;
+    },
+
+    getSchedulesByDay: function(day) {
+        try {
+            var gdt = new GlideDateTime(day);
+            var scheduleEntriesArr = [];
+            var grSE = new GlideRecord('cmn_schedule_span');
+            var scheduleQuery = 'schedule.sys_class_name=cmn_schedule_blackout^OR' +
+                'schedule.sys_class_name=cmn_schedule_maintenance';		
+            grSE.addEncodedQuery(scheduleQuery);
+			grSE.addEncodedQuery('schedule.u_public=true');
+            grSE.query();
+            var scheduleCheck = true;
+            while (grSE.next()) {
+                var start = grSE.getDisplayValue('start_date_time');
+                var end = grSE.getDisplayValue('end_date_time');
+                var gdtStart = new GlideDateTime(start);
+                var gdtEnd = new GlideDateTime(end);
+                var duration = GlideDateTime.subtract(gdtStart, gdtEnd);
+                var schedObj = {
+                    sys_id: grSE.getUniqueValue(),
+                    schedule: grSE.getValue('schedule'),
+                    name: grSE.schedule.name.getDisplayValue(),
+					description: grSE.schedule.description.getDisplayValue(),
+                    allDay: grSE.getValue('all_day'),
+                    type: grSE.schedule.sys_class_name,
+                    start: start,
+                    end: end,
+                    duration: duration
+                };
+               // if (this._checkScheduleEntry(day, grSE.getValue('sys_id') + '')) {
+                    scheduleEntriesArr.push(schedObj);
+               // }
+            }
+            var returnArr = [];
+
+            scheduleEntriesArr.forEach(function(schedule, index, myArray) {
+                var date = gdt.getDate().toString();
+                var scheduleStartGDT = new GlideDateTime();
+                scheduleStartGDT.setValue(schedule.start);
+                var scheduleStartTime = scheduleStartGDT.getTime();
+                var scheduleEndGDT = new GlideDateTime();
+                scheduleEndGDT.setValue(schedule.start);
+
+                var gtime = new GlideTime();
+                gtime.setValue(schedule.duration);
+                scheduleEndGDT.add(gtime);
+
+                var checkStartGDT = new GlideDateTime();
+                checkStartGDT.setValue(date + ' ' + scheduleStartTime.getByFormat('HH:mm'));
+                var checkEndGDT = new GlideDateTime();
+                checkEndGDT.setValue(date + ' ' + scheduleStartTime.getByFormat('HH:mm'));
+
+                var offset = scheduleStartGDT.getTZOffset();
+                checkStartGDT.add(-offset);
+                checkEndGDT.add(-offset);
+                var valueObj = {
+                    begin: scheduleStartGDT.getDisplayValue() + '',
+                    end: scheduleEndGDT.getDisplayValue() + '',
+                    schedule: schedule.schedule,
+                    beginTime: scheduleStartGDT.getTime().getByFormat('hh:mm a') + '',
+                    endTime: scheduleEndGDT.getTime().getByFormat('hh:mm a') + '',
+                };
+                var sched = new GlideSchedule(schedule.schedule);
+                if (sched.isInSchedule(checkStartGDT)) {
+                    var recordObj = {
+                        sys_id: '00000',
+                        schedule: valueObj.schedule,
+                        date: date,
+                        checkedAgainst: checkStartGDT.getDisplayValue(),
+                        begin: valueObj.begin,
+                        end: valueObj.end,
+                        beginTime: valueObj.beginTime,
+                        endTime: valueObj.endTime,
+                        type: schedule.type.toString(),
+                        short_description: schedule.name.toString(),
+						description: schedule.description.toString()
+                    };
+                    returnArr.push(recordObj);
+                }
+            });
+            return returnArr;
+        } catch (err) {
+            gs.info('Error in x_8481_maintenance.MaintCalUtils.getOutagesByDay()' + err);
+        }
+
+    },
+	
+    _checkScheduleEntry: function(day, entry) {
+        var returnMatch = true;
+        var grSECSE = new GlideRecord('cmn_schedule_span');
+        grSECSE.get(entry);
+        var targetDayCSE = new GlideDateTime(day);
+        var targetDayNumberCSE = targetDayCSE.getDayOfMonthLocalTime();
+        var targetDayOfWeek = targetDayCSE.getDayOfWeekLocalTime();
+        var start = grSECSE.getDisplayValue('start_date_time');
+        var end = grSECSE.getDisplayValue('repeat_until');
+        var endDT = grSECSE.getDisplayValue('end_date_time');
+        /////Check to make sure the end day of schedule entry has not passed
+        if (grSECSE.getDisplayValue('repeat_until') && (grSECSE.getDisplayValue('repeat_until') < targetDayCSE.getDate())) {
+            returnMatch = false;
+        }
+        /////Check that day of week matches	
+        else if (grSECSE.getValue('repeat_type') == 'weekly' && grSECSE.getValue('repeat_count') == '1') {
+            if (targetDayCSE > end && end)
+                returnMatch = false;
+            var daysArr = grSECSE.getValue('days_of_week').split('');
+            var daysArrInt = daysArr.map(function(value) {
+                return parseInt(value, 10);
+            });
+            if (daysArrInt.indexOf(targetDayOfWeek) < 0)
+                returnMatch = false;
+        }
+        /////Check for no repeat
+        else if (grSECSE.getValue('repeat_type') == 'NULL_OVERRIDE' || grSECSE.getValue('repeat_type') == null) {
+            if (targetDayCSE > endDT || targetDayCSE < start)
+                returnMatch = false;
+        }
+        /////Check for monthly repeats	
+        else if (grSECSE.getValue('repeat_type') == 'monthly' && grSECSE.getValue('repeat_count') == '1') {
+            var entryDate = new GlideDateTime();
+            entryDate.setValue(start);
+            var entryDateNumber = entryDate.getDayOfMonthLocalTime();
+            var entryDateDay = entryDate.getDayOfWeekLocalTime();
+            var monthlyType = grSECSE.getValue('monthly_type');
+            switch (monthlyType) {
+                case 'dom':
+                    if (entryDateNumber != targetDayNumberCSE)
+                        returnMatch = false;
+                    break;
+                default:
+                    returnMatch = true;
+            }
+        }
+        return returnMatch;
+    },
+
+    type: 'MaintCalUtils'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>bdr2328</sys_created_by>
+        <sys_created_on>2021-03-16 20:04:27</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>55e0b9fb1b3ea050396c6461604bcbff</sys_id>
+        <sys_mod_count>26</sys_mod_count>
+        <sys_name>MaintCalUtils</sys_name>
+        <sys_package display_value="Maintenance Calendar" source="x_uota5_maint">0ad079fb1b3ea050396c6461604bcb11</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Maintenance Calendar">0ad079fb1b3ea050396c6461604bcb11</sys_scope>
+        <sys_update_name>sys_script_include_55e0b9fb1b3ea050396c6461604bcbff</sys_update_name>
+        <sys_updated_by>bdr2328</sys_updated_by>
+        <sys_updated_on>2022-01-06 20:13:08</sys_updated_on>
+        <u_exception_reason/>
+    </sys_script_include>
+</record_update>
